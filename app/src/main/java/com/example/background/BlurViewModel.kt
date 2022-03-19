@@ -39,6 +39,10 @@ class BlurViewModel(application: Application) : ViewModel() {
     // New instance variable for the WorkInfo
     internal val outputWorkInfos: LiveData<List<WorkInfo>>
 
+    internal fun cancelWork() {
+        workManager.cancelUniqueWork(IMAGE_MANIPULATION_WORK_NAME)
+    }
+
     // Modify the existing init block in the BlurViewModel class to this:
     init {
         imageUri = getImageUri(application.applicationContext)
@@ -78,15 +82,22 @@ class BlurViewModel(application: Application) : ViewModel() {
             continuation = continuation.then(blurBuilder.build())
         }
 
-        // Add WorkRequest to save the image to the filesystem
-        val save = OneTimeWorkRequestBuilder<SaveImageToFileWorker>()
-            .addTag(TAG_OUTPUT) // <-- ADD THIS
+        // Put this inside the applyBlur() function, above the save work request.
+// Create charging constraint
+        val constraints = Constraints.Builder()
+            .setRequiresCharging(true)
             .build()
 
+// Add WorkRequest to save the image to the filesystem
+        val save = OneTimeWorkRequestBuilder<SaveImageToFileWorker>()
+            .setConstraints(constraints)
+            .addTag(TAG_OUTPUT)
+            .build()
         continuation = continuation.then(save)
 
-        // Actually start the work
+// Actually start the work
         continuation.enqueue()
+
     }
 
     private fun uriOrNull(uriString: String?): Uri? {

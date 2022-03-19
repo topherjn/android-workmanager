@@ -27,15 +27,14 @@ class BlurWorker(ctx: Context, params: WorkerParameters) : Worker(ctx, params) {
 
         return try {
             if (TextUtils.isEmpty(resourceUri)) {
-                Log.d(TAG,"Invalid input uri")
+
                 throw IllegalArgumentException("Invalid input uri")
             }
 
             val resolver = appContext.contentResolver
 
             val picture = BitmapFactory.decodeStream(
-                resolver.openInputStream(Uri.parse(resourceUri))
-            )
+                resolver.openInputStream(Uri.parse(resourceUri)))
 
             val output = blurBitmap(picture, appContext)
 
